@@ -1,5 +1,6 @@
 package com.github.wechatcloudrun.utils;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -48,5 +49,44 @@ public class Https {
 
         // 将响应体转换为 JSONObject
         return new JSONObject(response.getBody());
+    }
+
+    /**
+     * 发送 POST 请求，返回 JSON 数据
+     *
+     * @param url    请求 URL
+     * @param body   请求体（JSON 格式）
+     * @param headers 请求头（可选）
+     * @return JSON 格式的响应数据
+     */
+    public static Object post(String url, JSONObject body, HttpHeaders headers) {
+        // 创建 HTTP 实体
+        HttpEntity<String> entity = new HttpEntity<>(body.toString(), headers);
+
+        // 发送 POST 请求
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                String.class
+        );
+
+        // 将响应体转换为 JSONObject
+        // 获取原始响应数据
+        String rawResponse = response.getBody();
+
+        // 根据响应数据的格式返回相应的类型
+        if (rawResponse == null || rawResponse.trim().isEmpty()) {
+            return null; // 空响应
+        } else if (rawResponse.startsWith("{")) {
+            // 解析为 JSONObject
+            return new JSONObject(rawResponse);
+        } else if (rawResponse.startsWith("[")) {
+            // 解析为 JSONArray
+            return new JSONArray(rawResponse);
+        } else {
+            // 返回原始字符串
+            return rawResponse;
+        }
     }
 }
